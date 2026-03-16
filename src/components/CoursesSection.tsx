@@ -1,14 +1,15 @@
-import { Star, Clock, BarChart, Sparkles } from "lucide-react";
+import { Star, Clock, BarChart, Sparkles, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 const courses = [
-  { title: "Data Structures & Algorithms", level: "Intermediate", duration: "12 weeks", rating: 4.8, price: "₹999", image: "📊", aiRecommended: true },
-  { title: "Full Stack Web Development", level: "Beginner", duration: "16 weeks", rating: 4.9, price: "₹1,499", image: "🌐", aiRecommended: true },
-  { title: "Machine Learning with Python", level: "Advanced", duration: "10 weeks", rating: 4.7, price: "₹1,299", image: "🤖", aiRecommended: false },
-  { title: "React & Next.js Mastery", level: "Intermediate", duration: "8 weeks", rating: 4.8, price: "₹799", image: "⚛️", aiRecommended: false },
-  { title: "System Design Fundamentals", level: "Advanced", duration: "6 weeks", rating: 4.6, price: "₹1,199", image: "🏗️", aiRecommended: true },
-  { title: "Python for Beginners", level: "Beginner", duration: "4 weeks", rating: 4.9, price: "Free", image: "🐍", aiRecommended: false },
+  { title: "Data Structures & Algorithms", level: "Intermediate", duration: "12 weeks", rating: 4.8, price: "₹999", image: "📊", aiRecommended: true, students: "2.5k" },
+  { title: "Full Stack Web Development", level: "Beginner", duration: "16 weeks", rating: 4.9, price: "₹1,499", image: "🌐", aiRecommended: true, students: "3.2k" },
+  { title: "HTML & CSS Fundamentals", level: "Beginner", duration: "6 weeks", rating: 4.9, price: "Free", image: "🎨", aiRecommended: true, students: "5.1k" },
+  { title: "Machine Learning with Python", level: "Advanced", duration: "10 weeks", rating: 4.7, price: "₹1,299", image: "🤖", aiRecommended: false, students: "1.8k" },
+  { title: "React & Next.js Mastery", level: "Intermediate", duration: "8 weeks", rating: 4.8, price: "₹799", image: "⚛️", aiRecommended: false, students: "2.1k" },
+  { title: "System Design Fundamentals", level: "Advanced", duration: "6 weeks", rating: 4.6, price: "₹1,199", image: "🏗️", aiRecommended: true, students: "1.5k" },
+  { title: "Python for Beginners", level: "Beginner", duration: "4 weeks", rating: 4.9, price: "Free", image: "🐍", aiRecommended: false, students: "4.7k" },
 ];
 
 const levelColor: Record<string, string> = {
@@ -34,20 +35,21 @@ const CoursesSection = () => (
         {courses.map((course, i) => (
           <div
             key={course.title}
-            className="group bg-card rounded-xl shadow-card hover:shadow-card-hover transition-all duration-300 overflow-hidden border border-border hover:-translate-y-1"
+            className="group bg-card rounded-xl shadow-card hover:shadow-card-hover transition-all duration-300 overflow-hidden border border-border hover:-translate-y-2 hover:border-primary/50"
             style={{ animationDelay: `${i * 0.1}s` }}
           >
-            <div className="h-40 gradient-hero flex items-center justify-center text-6xl relative">
-              {course.image}
+            <div className="h-40 gradient-hero flex items-center justify-center text-6xl relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-accent/10 group-hover:scale-110 transition-transform duration-500" />
+              <span className="relative z-10 group-hover:scale-110 transition-transform duration-300">{course.image}</span>
               {course.aiRecommended && (
-                <Badge className="absolute top-3 right-3 gradient-primary text-primary-foreground border-0 text-xs">
+                <Badge className="absolute top-3 right-3 gradient-primary text-primary-foreground border-0 text-xs shadow-lg">
                   <Sparkles className="w-3 h-3 mr-1" /> AI Recommended
                 </Badge>
               )}
             </div>
             <div className="p-5 space-y-3">
-              <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">{course.title}</h3>
-              <div className="flex items-center gap-3 text-sm">
+              <h3 className="font-semibold text-lg group-hover:text-primary transition-colors line-clamp-2">{course.title}</h3>
+              <div className="flex items-center gap-3 text-sm flex-wrap">
                 <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${levelColor[course.level]}`}>
                   {course.level}
                 </span>
@@ -55,14 +57,18 @@ const CoursesSection = () => (
                   <Clock className="w-3 h-3" /> {course.duration}
                 </span>
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Users className="w-4 h-4" />
+                <span>{course.students} students</span>
+              </div>
+              <div className="flex items-center justify-between pt-2">
                 <span className="flex items-center gap-1 text-sm">
                   <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
                   <span className="font-medium">{course.rating}</span>
                 </span>
                 <span className="font-bold text-lg gradient-text">{course.price}</span>
               </div>
-              <Button className="w-full gradient-primary text-primary-foreground border-0 mt-2">
+              <Button className="w-full gradient-primary text-primary-foreground border-0 mt-2 group-hover:shadow-glow transition-all duration-300">
                 Enroll Now
               </Button>
             </div>
