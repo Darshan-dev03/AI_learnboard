@@ -8,12 +8,8 @@ import { supabase } from "@/lib/supabase";
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const today = new Date().toLocaleDateString("en-US", { weekday: "long" });
 
-const weekStart = new Date();
-weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1);
-const weekStartStr = weekStart.toISOString().split("T")[0];
-
 const StudyPlanner = ({ user }: { user: any }) => {
-  const { plan, loading, toggleTopic } = useStudyPlan(user.id);
+  const { plan, loading, toggleTopic, refetch, weekStartStr } = useStudyPlan(user.id);
 
   const addTopic = async (day: string) => {
     const topic = prompt(`Add topic for ${day}:`);
@@ -21,6 +17,7 @@ const StudyPlanner = ({ user }: { user: any }) => {
     await supabase.from("study_plan_topics").insert({
       user_id: user.id, day_of_week: day, topic_name: topic.trim(), week_start: weekStartStr,
     });
+    refetch();
   };
 
   const grouped = DAYS.reduce((acc, day) => {
@@ -34,7 +31,11 @@ const StudyPlanner = ({ user }: { user: any }) => {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Study Planner</h1>
-        <p className="text-muted-foreground mt-1">Your weekly study schedule — click topics to mark done</p>
+        <div className="flex items-center gap-3 mt-3 px-4 py-3 rounded-xl bg-gradient-to-r from-primary/15 via-accent/10 to-primary/15 border border-primary/30 shadow-glow w-fit animate-pulse">
+          <span className="text-xl">📅</span>
+          <p className="text-base font-semibold gradient-text tracking-wide">Your weekly study schedule — click topics to mark done</p>
+          <span className="text-xl">✅</span>
+        </div>
       </div>
 
       <Card className="border-primary/30 bg-primary/5">

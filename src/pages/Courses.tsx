@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Star, Clock, BarChart2, Sparkles, Users, CheckCircle, X, Lock } from "lucide-react";
+import { Star, Clock, BarChart2, Sparkles, Users, CheckCircle, X, Lock, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/lib/supabase";
@@ -74,6 +74,12 @@ const Courses = () => {
 
       <main className="flex-1 container mx-auto px-4 py-16">
         <div className="text-center mb-12 space-y-3">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 hover:text-primary hover:-translate-x-1 hover:shadow-md px-4 py-2 rounded-lg transition-all duration-200 mb-4"
+          >
+            <ArrowLeft className="w-4 h-4" /> Back
+          </button>
           <Badge className="gradient-primary text-primary-foreground border-0 px-4 py-1">
             <Sparkles className="w-3 h-3 mr-1" /> AI-Curated
           </Badge>

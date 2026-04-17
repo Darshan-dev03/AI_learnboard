@@ -187,9 +187,10 @@ export const useStudyPlan = (userId: string) => {
 
   const toggleTopic = async (id: string, done: boolean) => {
     await supabase.from("study_plan_topics").update({ is_done: done }).eq("id", id);
+    fetch();
   };
 
-  return { plan, loading, toggleTopic };
+  return { plan, loading, toggleTopic, refetch: fetch, weekStartStr };
 };
 
 export const useAchievements = (userId: string) => {
