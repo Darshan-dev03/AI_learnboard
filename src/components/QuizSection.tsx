@@ -1,4 +1,5 @@
 import { Brain, Zap, BarChart3, CheckCircle2, Clock } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 const quizzes = [
@@ -82,9 +83,11 @@ const QuizSection = () => (
                 </div>
               </div>
             ) : (
-              <Button className="w-full gradient-primary text-primary-foreground border-0">
-                <BarChart3 className="w-4 h-4 mr-2" /> Start Quiz
-              </Button>
+              <Link to="/login">
+                <Button className="w-full gradient-primary text-primary-foreground border-0">
+                  <BarChart3 className="w-4 h-4 mr-2" /> Start Quiz
+                </Button>
+              </Link>
             )}
           </div>
         ))}

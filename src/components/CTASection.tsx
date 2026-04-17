@@ -1,4 +1,5 @@
 import { ArrowRight, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 const CTASection = () => (
@@ -17,13 +18,15 @@ const CTASection = () => (
       <p className="text-lg text-primary-foreground/80 max-w-xl mx-auto">
         Join thousands of students who are already learning smarter with AI. Start for free today.
       </p>
-      <Button
-        size="lg"
-        className="bg-card text-primary hover:bg-card/90 px-10 py-6 text-lg font-semibold animate-pulse-glow transition-all duration-300"
-      >
-        Start Learning Now
-        <ArrowRight className="ml-2 w-5 h-5" />
-      </Button>
+      <Link to="/login">
+        <Button
+          size="lg"
+          className="bg-card text-primary hover:bg-card/90 px-10 py-6 text-lg font-semibold animate-pulse-glow transition-all duration-300"
+        >
+          Start Learning Now
+          <ArrowRight className="ml-2 w-5 h-5" />
+        </Button>
+      </Link>
     </div>
   </section>
 );

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const links = ["Courses", "Pricing", "Dashboard", "Quiz", "How It Works"];
+  const anchorLinks = ["Pricing", "Quiz", "How It Works"];
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glass">
@@ -19,7 +19,10 @@ const Navbar = () => {
         </a>
 
         <div className="hidden md:flex items-center gap-6">
-          {links.map((link) => (
+          <a href="/#courses" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            Courses
+          </a>
+          {anchorLinks.map((link) => (
             <a
               key={link}
               href={`#${link.toLowerCase().replace(/\s+/g, "-")}`}
@@ -48,7 +51,10 @@ const Navbar = () => {
 
       {isOpen && (
         <div className="md:hidden glass border-t border-border px-4 pb-4 animate-fade-up">
-          {links.map((link) => (
+          <a href="/#courses" className="block py-2 text-sm font-medium text-muted-foreground" onClick={() => setIsOpen(false)}>
+            Courses
+          </a>
+          {anchorLinks.map((link) => (
             <a
               key={link}
               href={`#${link.toLowerCase().replace(/\s+/g, "-")}`}

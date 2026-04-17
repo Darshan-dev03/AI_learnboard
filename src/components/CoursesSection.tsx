@@ -1,4 +1,5 @@
-import { Star, Clock, BarChart, Sparkles, Users } from "lucide-react";
+import { Star, Clock, Sparkles, Users } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -68,9 +69,11 @@ const CoursesSection = () => (
                 </span>
                 <span className="font-bold text-lg gradient-text">{course.price}</span>
               </div>
-              <Button className="w-full gradient-primary text-primary-foreground border-0 mt-2 group-hover:shadow-glow transition-all duration-300">
-                Enroll Now
-              </Button>
+              <Link to="/login">
+                <Button className="w-full gradient-primary text-primary-foreground border-0 mt-2 group-hover:shadow-glow transition-all duration-300">
+                  Enroll Now
+                </Button>
+              </Link>
             </div>
           </div>
         ))}

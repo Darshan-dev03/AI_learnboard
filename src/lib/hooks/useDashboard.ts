@@ -51,23 +51,52 @@ export const useModuleProgress = (userId: string, courseId: string) => {
   const [modules, setModules] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const fetch = async () => {
+    const { data: mods } = await supabase.from("course_modules")
+      .select("*, module_progress(status)")
+      .eq("course_id", courseId)
+      .order("order_index");
+
+    const mapped = (mods || []).map(m => ({
+      ...m,
+      status: m.module_progress?.find((p: any) => p.user_id === userId)?.status
+        || m.module_progress?.[0]?.status
+        || "locked",
+    }));
+
+    // Auto-unlock first module if all are locked
+    const hasActive = mapped.some(m => m.status === "active" || m.status === "done");
+    if (!hasActive && mapped.length > 0) {
+      await supabase.from("module_progress").upsert({
+        user_id: userId,
+        module_id: mapped[0].id,
+        status: "active",
+      });
+      mapped[0].status = "active";
+    }
+
+    // Unlock next module after each done
+    for (let i = 0; i < mapped.length - 1; i++) {
+      if (mapped[i].status === "done" && mapped[i + 1].status === "locked") {
+        await supabase.from("module_progress").upsert({
+          user_id: userId,
+          module_id: mapped[i + 1].id,
+          status: "active",
+        });
+        mapped[i + 1].status = "active";
+      }
+    }
+
+    setModules(mapped);
+    setLoading(false);
+  };
+
   useEffect(() => {
     if (!userId || !courseId) return;
-    const fetch = async () => {
-      const { data: mods } = await supabase.from("course_modules")
-        .select("*, module_progress(status)")
-        .eq("course_id", courseId)
-        .order("order_index");
-      setModules((mods || []).map(m => ({
-        ...m,
-        status: m.module_progress?.[0]?.status || "locked",
-      })));
-      setLoading(false);
-    };
     fetch();
   }, [userId, courseId]);
 
-  return { modules, loading };
+  return { modules, loading, refetch: fetch };
 };
 
 export const useQuiz = () => {
@@ -264,4 +293,51 @@ export const useAIChat = (userId: string) => {
   };
 
   return { messages, loading, saveMessage };
+};
+
+export const useCourses = () => {
+  const [courses, setCourses] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.from("courses").select("*").eq("is_published", true).then(({ data }) => {
+      setCourses(data || []);
+      setLoading(false);
+    });
+  }, []);
+
+  return { courses, loading };
+};
+
+export const useCertificates = (userId: string) => {
+  const [certificates, setCertificates] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetch = async () => {
+    const { data } = await supabase
+      .from("certificates")
+      .select("*, courses(title, emoji)")
+      .eq("user_id", userId);
+    setCertificates(data || []);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    if (!userId) return;
+    fetch();
+  }, [userId]);
+
+  const issueCertificate = async (userId: string, courseId: string) => {
+    const { data: existing } = await supabase
+      .from("certificates")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("course_id", courseId)
+      .single();
+    if (existing) return;
+    await supabase.from("certificates").insert({ user_id: userId, course_id: courseId });
+    fetch();
+  };
+
+  return { certificates, loading, issueCertificate };
 };

@@ -1,4 +1,5 @@
 import { ArrowRight, Play, Sparkles, Zap, TrendingUp } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/hero-illustration.png";
 
@@ -62,14 +63,18 @@ const HeroSection = () => {
           </div>
 
           <div className="flex flex-wrap gap-4 animate-fade-up" style={{ animationDelay: "0.3s" }}>
-            <Button size="lg" className="gradient-primary text-primary-foreground border-0 shadow-glow hover:shadow-card-hover hover:scale-105 transition-all duration-300 px-8 group">
-              Get Started Free
-              <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Button>
-            <Button size="lg" variant="outline" className="px-8 group hover:bg-primary/10 hover:border-primary transition-all duration-300">
-              <Play className="mr-2 w-4 h-4 group-hover:text-primary transition-colors" />
-              Explore Courses
-            </Button>
+            <Link to="/login">
+              <Button size="lg" className="gradient-primary text-primary-foreground border-0 shadow-glow hover:shadow-card-hover hover:scale-105 transition-all duration-300 px-8 group">
+                Get Started Free
+                <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+            <Link to="/login">
+              <Button size="lg" variant="outline" className="px-8 group hover:bg-primary/10 hover:border-primary transition-all duration-300">
+                <Play className="mr-2 w-4 h-4 group-hover:text-primary transition-colors" />
+                Explore Courses
+              </Button>
+            </Link>
           </div>
 
           <div className="flex items-center gap-6 pt-4 animate-fade-up" style={{ animationDelay: "0.4s" }}>

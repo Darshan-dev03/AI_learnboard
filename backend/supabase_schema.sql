@@ -302,3 +302,16 @@ insert into public.badges (name, description, icon, criteria) values
   ('Course Finisher', 'Complete your first course', '📚', 'course_complete'),
   ('Top Performer', 'Rank in top 10 on leaderboard', '🏆', 'leaderboard_top10')
 on conflict do nothing;
+
+-- 16. CERTIFICATES
+-- Run this in your Supabase SQL Editor to add certificate support
+create table if not exists public.certificates (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade,
+  course_id uuid references public.courses(id) on delete cascade,
+  issued_at timestamptz default now(),
+  unique(user_id, course_id)
+);
+alter table public.certificates enable row level security;
+create policy "Users can view own certificates" on public.certificates for select using (auth.uid() = user_id);
+create policy "Users can insert own certificates" on public.certificates for insert with check (auth.uid() = user_id);

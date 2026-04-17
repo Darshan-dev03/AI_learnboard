@@ -1,4 +1,5 @@
 import { Check, Shield, Zap, Receipt, RotateCcw, CreditCard, Smartphone, Wallet } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 const plans = [
@@ -76,15 +77,17 @@ const PricingSection = () => (
                 </li>
               ))}
             </ul>
-            <Button
-              className={`w-full ${
-                plan.highlighted
-                  ? "bg-card text-primary hover:bg-card/90"
-                  : "gradient-primary text-primary-foreground border-0"
-              }`}
-            >
-              Get Started
-            </Button>
+            <Link to="/login">
+              <Button
+                className={`w-full ${
+                  plan.highlighted
+                    ? "bg-card text-primary hover:bg-card/90"
+                    : "gradient-primary text-primary-foreground border-0"
+                }`}
+              >
+                Get Started
+              </Button>
+            </Link>
           </div>
         ))}
       </div>
