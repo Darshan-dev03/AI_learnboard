@@ -27,15 +27,16 @@ export const useEnrollments = (userId: string) => {
   const [enrollments, setEnrollments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const fetch = async () => {
+    const { data } = await supabase.from("enrollments")
+      .select("*, courses(*)")
+      .eq("user_id", userId);
+    setEnrollments(data || []);
+    setLoading(false);
+  };
+
   useEffect(() => {
     if (!userId) return;
-    const fetch = async () => {
-      const { data } = await supabase.from("enrollments")
-        .select("*, courses(*)")
-        .eq("user_id", userId);
-      setEnrollments(data || []);
-      setLoading(false);
-    };
     fetch();
     const sub = supabase.channel("enrollments_" + userId)
       .on("postgres_changes", { event: "*", schema: "public", table: "enrollments", filter: `user_id=eq.${userId}` },
@@ -44,7 +45,7 @@ export const useEnrollments = (userId: string) => {
     return () => { supabase.removeChannel(sub); };
   }, [userId]);
 
-  return { enrollments, loading };
+  return { enrollments, loading, refetch: fetch };
 };
 
 export const useModuleProgress = (userId: string, courseId: string) => {
@@ -53,15 +54,22 @@ export const useModuleProgress = (userId: string, courseId: string) => {
 
   const fetch = async () => {
     const { data: mods } = await supabase.from("course_modules")
-      .select("*, module_progress(status)")
+      .select("id, title, order_index, course_id")
       .eq("course_id", courseId)
       .order("order_index");
 
+    // Fetch progress separately filtered by user
+    const { data: progressRows } = await supabase.from("module_progress")
+      .select("module_id, status")
+      .eq("user_id", userId)
+      .in("module_id", (mods || []).map((m: any) => m.id));
+
+    const progressMap: Record<string, string> = {};
+    (progressRows || []).forEach((p: any) => { progressMap[p.module_id] = p.status; });
+
     const mapped = (mods || []).map(m => ({
       ...m,
-      status: m.module_progress?.find((p: any) => p.user_id === userId)?.status
-        || m.module_progress?.[0]?.status
-        || "locked",
+      status: progressMap[m.id] || "locked",
     }));
 
     // Auto-unlock first module if all are locked
@@ -273,27 +281,72 @@ export const useAIChat = (userId: string) => {
 
   const fetch = async () => {
     const { data } = await supabase.from("ai_chat_history")
-      .select("*").eq("user_id", userId)
+      .select("*").eq("user_id", userId).eq("is_archived", false)
       .order("created_at").limit(50);
     setMessages(data || []);
     setLoading(false);
   };
 
+  const fetchArchived = async () => {
+    const { data } = await supabase.from("ai_chat_history")
+      .select("*").eq("user_id", userId).eq("is_archived", true)
+      .order("created_at", { ascending: false }).limit(100);
+    return data || [];
+  };
+
+  const archiveOldMessages = async () => {
+    // Archive messages older than 1 day
+    const oneDayAgo = new Date();
+    oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+    
+    await supabase.from("ai_chat_history")
+      .update({ is_archived: true })
+      .eq("user_id", userId)
+      .eq("is_archived", false)
+      .lt("created_at", oneDayAgo.toISOString());
+  };
+
   useEffect(() => {
     if (!userId) return;
-    fetch();
+    
+    // Archive old messages before fetching
+    archiveOldMessages().then(() => fetch());
+    
     const sub = supabase.channel("chat_" + userId)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "ai_chat_history", filter: `user_id=eq.${userId}` },
-        (payload) => setMessages(prev => [...prev, payload.new]))
+        (payload) => {
+          // Only add to messages if not archived
+          if (!payload.new.is_archived) {
+            setMessages(prev => [...prev, payload.new]);
+          }
+        })
       .subscribe();
     return () => { supabase.removeChannel(sub); };
   }, [userId]);
 
   const saveMessage = async (role: string, message: string) => {
-    await supabase.from("ai_chat_history").insert({ user_id: userId, role, message });
+    const { data, error } = await supabase.from("ai_chat_history")
+      .insert({ user_id: userId, role, message, is_archived: false })
+      .select()
+      .single();
+    
+    // Immediately update local state if insert was successful
+    if (!error && data) {
+      setMessages(prev => [...prev, data]);
+    }
   };
 
-  return { messages, loading, saveMessage };
+  const clearChat = async () => {
+    // Archive all current messages
+    await supabase.from("ai_chat_history")
+      .update({ is_archived: true })
+      .eq("user_id", userId)
+      .eq("is_archived", false);
+    
+    setMessages([]);
+  };
+
+  return { messages, loading, saveMessage, clearChat, fetchArchived };
 };
 
 export const useCourses = () => {
@@ -315,30 +368,28 @@ export const useCertificates = (userId: string) => {
   const [loading, setLoading] = useState(true);
 
   const fetch = async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("certificates")
       .select("*, courses(title, emoji)")
       .eq("user_id", userId);
-    setCertificates(data || []);
+    if (!error) setCertificates(data || []);
     setLoading(false);
   };
 
   useEffect(() => {
     if (!userId) return;
     fetch();
+    // Realtime subscription so cert appears immediately after insert
+    const sub = supabase.channel("certs_" + userId)
+      .on("postgres_changes", {
+        event: "INSERT",
+        schema: "public",
+        table: "certificates",
+        filter: `user_id=eq.${userId}`,
+      }, () => fetch())
+      .subscribe();
+    return () => { supabase.removeChannel(sub); };
   }, [userId]);
 
-  const issueCertificate = async (userId: string, courseId: string) => {
-    const { data: existing } = await supabase
-      .from("certificates")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("course_id", courseId)
-      .single();
-    if (existing) return;
-    await supabase.from("certificates").insert({ user_id: userId, course_id: courseId });
-    fetch();
-  };
-
-  return { certificates, loading, issueCertificate };
+  return { certificates, loading, refetch: fetch };
 };

@@ -220,10 +220,22 @@ create table if not exists public.ai_chat_history (
   user_id uuid references auth.users(id) on delete cascade,
   role text not null, -- user | ai
   message text not null,
+  is_archived boolean default false,
   created_at timestamptz default now()
 );
 alter table public.ai_chat_history enable row level security;
 create policy "Users can manage own chat" on public.ai_chat_history for all using (auth.uid() = user_id);
+
+-- Migration: Add is_archived column if it doesn't exist
+DO $$ 
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'ai_chat_history' AND column_name = 'is_archived'
+  ) THEN
+    ALTER TABLE public.ai_chat_history ADD COLUMN is_archived boolean default false;
+  END IF;
+END $$;
 
 -- ============================================================
 -- SEED DATA
@@ -315,3 +327,76 @@ create table if not exists public.certificates (
 alter table public.certificates enable row level security;
 create policy "Users can view own certificates" on public.certificates for select using (auth.uid() = user_id);
 create policy "Users can insert own certificates" on public.certificates for insert with check (auth.uid() = user_id);
+
+-- Fix: ensure module_progress has unique constraint for upsert to work correctly
+-- Run this in Supabase SQL Editor if not already present:
+ALTER TABLE public.module_progress DROP CONSTRAINT IF EXISTS module_progress_user_id_module_id_key;
+ALTER TABLE public.module_progress ADD CONSTRAINT module_progress_user_id_module_id_key UNIQUE (user_id, module_id);
+
+-- Add 5 more courses (run in Supabase SQL Editor)
+INSERT INTO public.courses (title, emoji, description, level, duration_weeks, price_inr, is_free) VALUES
+  ('Python for Beginners', '🐍', 'Learn Python from scratch — variables, loops, functions, and OOP', 'Beginner', 4, 0, true),
+  ('System Design Fundamentals', '🏗️', 'Learn to design scalable systems — databases, caching, load balancing', 'Advanced', 6, 1199, false),
+  ('Git & GitHub Mastery', '🔧', 'Master version control, branching, pull requests, and CI/CD workflows', 'Beginner', 3, 499, false),
+  ('TypeScript Essentials', '📘', 'Add type safety to JavaScript — interfaces, generics, and advanced types', 'Intermediate', 5, 699, false),
+  ('SQL & Database Design', '🗄️', 'Learn SQL queries, joins, indexing, and relational database design', 'Beginner', 4, 599, false)
+ON CONFLICT DO NOTHING;
+
+-- Add modules for Python for Beginners
+INSERT INTO public.course_modules (course_id, title, order_index)
+SELECT id, m.title, m.idx FROM public.courses c
+CROSS JOIN (VALUES
+  (1, 'Module 1 – Python Basics'),
+  (2, 'Module 2 – Control Flow'),
+  (3, 'Module 3 – Functions & Modules'),
+  (4, 'Module 4 – OOP in Python')
+) AS m(idx, title)
+WHERE c.title = 'Python for Beginners'
+ON CONFLICT DO NOTHING;
+
+-- Add modules for System Design
+INSERT INTO public.course_modules (course_id, title, order_index)
+SELECT id, m.title, m.idx FROM public.courses c
+CROSS JOIN (VALUES
+  (1, 'Module 1 – Scalability Basics'),
+  (2, 'Module 2 – Databases & Caching'),
+  (3, 'Module 3 – Load Balancing'),
+  (4, 'Module 4 – Microservices')
+) AS m(idx, title)
+WHERE c.title = 'System Design Fundamentals'
+ON CONFLICT DO NOTHING;
+
+-- Add modules for Git
+INSERT INTO public.course_modules (course_id, title, order_index)
+SELECT id, m.title, m.idx FROM public.courses c
+CROSS JOIN (VALUES
+  (1, 'Module 1 – Git Basics'),
+  (2, 'Module 2 – Branching & Merging'),
+  (3, 'Module 3 – GitHub & Pull Requests')
+) AS m(idx, title)
+WHERE c.title = 'Git & GitHub Mastery'
+ON CONFLICT DO NOTHING;
+
+-- Add modules for TypeScript
+INSERT INTO public.course_modules (course_id, title, order_index)
+SELECT id, m.title, m.idx FROM public.courses c
+CROSS JOIN (VALUES
+  (1, 'Module 1 – Types & Interfaces'),
+  (2, 'Module 2 – Generics'),
+  (3, 'Module 3 – Advanced TypeScript'),
+  (4, 'Module 4 – TypeScript with React')
+) AS m(idx, title)
+WHERE c.title = 'TypeScript Essentials'
+ON CONFLICT DO NOTHING;
+
+-- Add modules for SQL
+INSERT INTO public.course_modules (course_id, title, order_index)
+SELECT id, m.title, m.idx FROM public.courses c
+CROSS JOIN (VALUES
+  (1, 'Module 1 – SQL Basics'),
+  (2, 'Module 2 – Joins & Subqueries'),
+  (3, 'Module 3 – Indexing & Performance'),
+  (4, 'Module 4 – Database Design')
+) AS m(idx, title)
+WHERE c.title = 'SQL & Database Design'
+ON CONFLICT DO NOTHING;

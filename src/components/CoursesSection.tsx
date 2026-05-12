@@ -10,7 +10,6 @@ const courses = [
   { title: "Machine Learning with Python", level: "Advanced", duration: "10 weeks", rating: 4.7, price: "₹1,299", image: "🤖", aiRecommended: false, students: "1.8k" },
   { title: "React & Next.js Mastery", level: "Intermediate", duration: "8 weeks", rating: 4.8, price: "₹799", image: "⚛️", aiRecommended: false, students: "2.1k" },
   { title: "System Design Fundamentals", level: "Advanced", duration: "6 weeks", rating: 4.6, price: "₹1,199", image: "🏗️", aiRecommended: true, students: "1.5k" },
-  { title: "Python for Beginners", level: "Beginner", duration: "4 weeks", rating: 4.9, price: "Free", image: "🐍", aiRecommended: false, students: "4.7k" },
 ];
 
 const levelColor: Record<string, string> = {

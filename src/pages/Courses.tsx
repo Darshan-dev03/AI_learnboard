@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Star, Clock, BarChart2, Sparkles, Users, CheckCircle, X, Lock, ArrowLeft } from "lucide-react";
+import { Clock, Sparkles, CheckCircle, X, Lock, ArrowLeft, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
-
+import { initiatePayment } from "@/lib/razorpay";
+import { sendPaymentSuccessEmail } from "@/lib/emailService";
 
 const levelColor: Record<string, string> = {
   Beginner: "bg-emerald-100 text-emerald-700",
@@ -38,35 +39,60 @@ const Courses = () => {
     setSelected(course);
   };
 
+  const doEnroll = async (paymentId: string) => {
+    const course = selected;
+    await supabase.from("payments").insert({
+      user_id: user.id, course_id: course.id,
+      amount_inr: course.price_inr, status: "paid",
+    });
+    await supabase.from("enrollments").upsert({
+      user_id: user.id, course_id: course.id, progress: 0,
+    });
+    setEnrolledIds(prev => [...prev, course.id]);
+    // Send payment confirmation email
+    await sendPaymentSuccessEmail(
+      user.email,
+      user.user_metadata?.full_name || "Student",
+      course.title, course.emoji || "📚",
+      course.price_inr, paymentId
+    );
+    toast({ title: "🎉 Enrolled!", description: `You're now enrolled in ${course.title}. Check your email for confirmation.` });
+    setSelected(null);
+    navigate("/dashboard/courses");
+  };
+
   const confirmPayment = async () => {
     if (!selected || !user) return;
     setPaying(true);
-    try {
-      // Simulate payment — in production integrate Razorpay here
-      const { error: payErr } = await supabase.from("payments").insert({
-        user_id: user.id,
-        course_id: selected.id,
-        amount_inr: selected.price_inr,
-        status: "paid",
-      });
-      if (payErr) throw payErr;
 
-      const { error: enrollErr } = await supabase.from("enrollments").upsert({
-        user_id: user.id,
-        course_id: selected.id,
-        progress: 0,
-      });
-      if (enrollErr) throw enrollErr;
-
-      setEnrolledIds((prev) => [...prev, selected.id]);
-      toast({ title: "Enrolled!", description: `You're now enrolled in ${selected.title}` });
-      setSelected(null);
-      navigate("/dashboard/courses");
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
-    } finally {
+    // Free course — enroll directly
+    if (selected.is_free || selected.price_inr === 0) {
+      await doEnroll("free");
       setPaying(false);
+      return;
     }
+
+    // Paid course — use Razorpay
+    initiatePayment({
+      courseId: selected.id,
+      courseTitle: selected.title,
+      courseEmoji: selected.emoji || "📚",
+      amountInr: selected.price_inr,
+      userId: user.id,
+      userEmail: user.email,
+      userName: user.user_metadata?.full_name || "Student",
+      onSuccess: async (paymentId) => {
+        await doEnroll(paymentId);
+        setPaying(false);
+      },
+      onFailure: (error) => {
+        if (!error.includes("cancelled")) {
+          toast({ title: "Payment Failed", description: error, variant: "destructive" });
+        }
+        setPaying(false);
+        setSelected(null);
+      },
+    });
   };
 
   return (
@@ -175,8 +201,8 @@ const Courses = () => {
               </div>
 
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Lock className="w-3 h-3" />
-                <span>Secure simulated payment — no real transaction</span>
+                <ShieldCheck className="w-3 h-3 text-green-500" />
+                <span>Secured by Razorpay · Test mode</span>
               </div>
             </div>
 

@@ -86,8 +86,8 @@ const HeroSection = () => {
               ))}
             </div>
             <div>
-              <p className="text-sm font-semibold">10,000+ Students</p>
-              <p className="text-xs text-muted-foreground">Already learning smarter</p>
+              <p className="text-sm font-semibold">Join Students</p>
+              <p className="text-xs text-muted-foreground">With learning smarter</p>
             </div>
           </div>
         </div>

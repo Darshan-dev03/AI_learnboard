@@ -7,7 +7,15 @@ const progressBars = [
   { label: "System Design", value: 45, color: "from-secondary to-accent" },
 ];
 
-const weeklyData = [30, 45, 60, 55, 75, 85, 70];
+const weeklyData = [
+  { value: 45, color: "from-blue-500 to-blue-600" },
+  { value: 82, color: "from-purple-500 to-purple-600" },
+  { value: 68, color: "from-pink-500 to-pink-600" },
+  { value: 91, color: "from-green-500 to-green-600" },
+  { value: 55, color: "from-yellow-500 to-yellow-600" },
+  { value: 78, color: "from-orange-500 to-orange-600" },
+  { value: 94, color: "from-red-500 to-red-600" },
+];
 const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const ProgressSection = () => (
@@ -61,16 +69,25 @@ const ProgressSection = () => (
           {/* Weekly Graph */}
           <div className="bg-card rounded-2xl shadow-card border border-border p-6">
             <h3 className="font-semibold mb-4">Weekly Activity</h3>
-            <div className="flex items-end justify-between gap-2 h-32">
-              {weeklyData.map((value, i) => (
-                <div key={i} className="flex flex-col items-center gap-1 flex-1">
-                  <div
-                    className="w-full rounded-t-md gradient-primary transition-all duration-500"
-                    style={{ height: `${value}%` }}
-                  />
-                  <span className="text-xs text-muted-foreground">{days[i]}</span>
-                </div>
-              ))}
+            <div className="space-y-2">
+              <div className="flex items-end justify-between gap-2 h-40 border-b border-border pb-2">
+                {weeklyData.map((data, i) => (
+                  <div key={i} className="flex flex-col items-center gap-2 flex-1">
+                    <div className="relative w-full flex items-end justify-center h-full">
+                      <div
+                        className={`w-full bg-gradient-to-t ${data.color} rounded-t-lg transition-all duration-500 hover:opacity-80 min-h-[20px]`}
+                        style={{ height: `${data.value}%` }}
+                        title={`${data.value}% activity`}
+                      />
+                    </div>
+                    <span className="text-xs text-muted-foreground font-medium">{days[i]}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center justify-between text-xs text-muted-foreground pt-2">
+                <span>Activity Level</span>
+                <span className="font-semibold text-primary">Peak: 94%</span>
+              </div>
             </div>
           </div>
         </div>

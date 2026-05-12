@@ -18,7 +18,7 @@ const CTASection = () => (
       <p className="text-lg text-primary-foreground/80 max-w-xl mx-auto">
         Join thousands of students who are already learning smarter with AI. Start for free today.
       </p>
-      <Link to="/login">
+      <Link to="/signup">
         <Button
           size="lg"
           className="bg-card text-primary hover:bg-card/90 px-10 py-6 text-lg font-semibold animate-pulse-glow transition-all duration-300"

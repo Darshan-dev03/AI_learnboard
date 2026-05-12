@@ -4,6 +4,9 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useEnrollments, useProfile, useQuizAttempts, useAchievements } from "@/lib/hooks/useDashboard";
 import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { checkAndAwardBadges } from "@/lib/achievements";
+import { useToast } from "@/hooks/use-toast";
 
 const DashboardHome = ({ user }: { user: any }) => {
   const name = user?.user_metadata?.full_name?.split(" ")[0] || "Student";
@@ -11,6 +14,14 @@ const DashboardHome = ({ user }: { user: any }) => {
   const { enrollments, loading: eLoading } = useEnrollments(user.id);
   const { attempts } = useQuizAttempts(user.id);
   const { userBadges } = useAchievements(user.id);
+  const { toast } = useToast();
+
+  // Auto-check and award badges on dashboard load
+  useEffect(() => {
+    if (user?.id) {
+      checkAndAwardBadges(user.id, toast);
+    }
+  }, [user?.id]);
 
   const avgQuiz = attempts.length
     ? Math.round(attempts.reduce((s, a) => s + (a.score / a.total) * 100, 0) / attempts.length)
