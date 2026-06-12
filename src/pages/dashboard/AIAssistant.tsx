@@ -3,7 +3,7 @@ import { Send, Bot, User, Sparkles, Trash2, Archive, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAIChat } from "@/lib/hooks/useDashboard";
-import { askAIAssistant } from "@/lib/openai";
+import { askAIAssistant } from "@/lib/gemini";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -64,9 +64,10 @@ const AIAssistant = ({ user }: { user: any }) => {
       }));
       const reply = await askAIAssistant(msg, history);
       await saveMessage("ai", reply);
-    } catch {
+    } catch (error) {
+      console.error("AI Assistant Error:", error);
       await saveMessage("ai", "Sorry, I couldn't connect right now. Please try again.");
-      toast({ title: "AI Error", description: "Check your OpenAI API key.", variant: "destructive" });
+      toast({ title: "AI Error", description: "Check your OpenAI API key or try restarting the server.", variant: "destructive" });
     } finally {
       setSending(false);
       setTimeout(() => inputRef.current?.focus(), 100);

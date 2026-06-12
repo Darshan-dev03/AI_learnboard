@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
-import { generateModuleContent, type AIModuleContent } from "@/lib/openai";
+import { generateModuleContent, type AIModuleContent } from "@/lib/gemini";
 import { getModuleData } from "./moduleData";
 import { sendModuleCompleteEmail, sendCourseCompleteEmail } from "@/lib/emailService";
 import { awardBadge, addPoints } from "@/lib/achievements";

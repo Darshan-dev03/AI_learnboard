@@ -1,4 +1,11 @@
-const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
+const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
+
+// Verify API key is loaded
+if (!GROQ_API_KEY) {
+  console.error("⚠️ VITE_GROQ_API_KEY is not set in environment variables");
+} else {
+  console.log("✅ Groq API Key loaded:", GROQ_API_KEY.substring(0, 20) + "...");
+}
 
 export interface AINote {
   heading: string;
@@ -21,25 +28,33 @@ export interface AIModuleContent {
 }
 
 const chat = async (prompt: string): Promise<string> => {
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${OPENAI_API_KEY}`,
+      Authorization: `Bearer ${GROQ_API_KEY}`,
     },
     body: JSON.stringify({
-      model: "gpt-4o-mini",
+      model: "llama-3.3-70b-versatile",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.7,
       max_tokens: 3000,
     }),
   });
-  if (!res.ok) throw new Error(`OpenAI error: ${res.status}`);
+
+  if (!res.ok) {
+    const error = await res.text();
+    throw new Error(`Groq API error: ${res.status} - ${error}`);
+  }
+
   const data = await res.json();
   return data.choices[0].message.content;
 };
 
-export const generateModuleContent = async (moduleTitle: string, courseTitle: string): Promise<AIModuleContent> => {
+export const generateModuleContent = async (
+  moduleTitle: string,
+  courseTitle: string
+): Promise<AIModuleContent> => {
   const prompt = `You are an expert programming instructor. Generate detailed study notes and a quiz for a module titled "${moduleTitle}" from the course "${courseTitle}".
 
 Return ONLY valid JSON in this exact format (no markdown, no extra text):
@@ -72,8 +87,6 @@ Requirements:
 - Focus specifically on "${moduleTitle}" — not generic content`;
 
   const raw = await chat(prompt);
-
-  // Strip markdown code fences if present
   const cleaned = raw.replace(/^```json\n?/, "").replace(/\n?```$/, "").trim();
   return JSON.parse(cleaned) as AIModuleContent;
 };
@@ -85,11 +98,13 @@ export interface WeeklyQuizQuestion {
   explanation: string;
 }
 
-export const generateWeeklyQuiz = async (topic: string, count = 5): Promise<WeeklyQuizQuestion[]> => {
-  // Add timestamp and random element to ensure variety
+export const generateWeeklyQuiz = async (
+  topic: string,
+  count = 5
+): Promise<WeeklyQuizQuestion[]> => {
   const timestamp = Date.now();
   const randomSeed = Math.floor(Math.random() * 1000);
-  
+
   const prompt = `Generate ${count} UNIQUE multiple-choice quiz questions about "${topic}" for a software learning platform.
 
 IMPORTANT: Generate DIFFERENT questions each time. Vary the difficulty, focus areas, and question types.
@@ -123,14 +138,14 @@ export const askAIAssistant = async (
   question: string,
   history: { role: string; content: string }[]
 ): Promise<string> => {
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${OPENAI_API_KEY}`,
+      Authorization: `Bearer ${GROQ_API_KEY}`,
     },
     body: JSON.stringify({
-      model: "gpt-4o-mini",
+      model: "llama-3.3-70b-versatile",
       messages: [
         {
           role: "system",
@@ -141,13 +156,21 @@ Keep responses clear, practical, and encouraging. Use code examples when helpful
 Format code with proper indentation. Keep responses under 200 words unless a detailed explanation is needed.`,
         },
         ...history,
-        { role: "user", content: question },
+        {
+          role: "user",
+          content: question,
+        },
       ],
       temperature: 0.7,
       max_tokens: 300,
     }),
   });
-  if (!res.ok) throw new Error(`OpenAI error: ${res.status}`);
+
+  if (!res.ok) {
+    const error = await res.text();
+    throw new Error(`Groq API error: ${res.status} - ${error}`);
+  }
+
   const data = await res.json();
   return data.choices[0].message.content;
 };
