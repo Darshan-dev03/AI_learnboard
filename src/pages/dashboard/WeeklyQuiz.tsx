@@ -58,7 +58,7 @@ const WeeklyQuiz = ({ user }: { user: any }) => {
         // Get user's enrolled courses
         const { data: enrollments } = await supabase
           .from("enrollments")
-          .select("course_id, courses(title)")
+          .select("course_id, courses!inner(title)")
           .eq("user_id", user.id);
 
         if (!enrollments || enrollments.length === 0) {
@@ -80,7 +80,7 @@ const WeeklyQuiz = ({ user }: { user: any }) => {
         const courseIds = enrollments.map(e => e.course_id);
         const { data: modules } = await supabase
           .from("course_modules")
-          .select("title, course_id, courses(title)")
+          .select("title, course_id, courses!inner(title)")
           .in("course_id", courseIds)
           .order("order_index");
 
@@ -89,7 +89,7 @@ const WeeklyQuiz = ({ user }: { user: any }) => {
         
         // Group by course
         enrollments.forEach(enrollment => {
-          const courseName = enrollment.courses?.title;
+          const courseName = (enrollment.courses as any)?.title;
           if (!courseName) return;
           
           // Add course as main topic

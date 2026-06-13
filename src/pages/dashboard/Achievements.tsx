@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { useAchievements, useEnrollments, useQuizAttempts, useCertificates } from "@/lib/hooks/useDashboard";
 import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
-import {  } from "@/lib/certificate";
+import { downloadCertificatePDF } from "@/lib/certificate";
 
 const downloadCert = (userName: string, courseTitle: string, issuedAt: string) => {
   const date = new Date(issuedAt).toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" });

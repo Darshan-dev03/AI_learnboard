@@ -132,23 +132,27 @@ const AdminDashboard = () => {
 
         <Card className="border-border/50">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Recent Payments</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2">
+              <CreditCard className="w-4 h-4 text-green-500" /> Recent Payments
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {recentPayments.length === 0 ? (
               <p className="text-sm text-muted-foreground">No payments yet.</p>
             ) : recentPayments.map((p, i) => (
-              <div key={i} className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">{p.courses?.emoji || "📚"}</span>
+              <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-border/50 hover:bg-accent/50 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
+                    <span className="text-xl">{p.courses?.emoji || "📚"}</span>
+                  </div>
                   <div>
-                    <p className="font-medium text-xs">{p.profiles?.full_name || "User"}</p>
+                    <p className="font-semibold text-sm">{p.profiles?.full_name || "User"}</p>
                     <p className="text-xs text-muted-foreground">{p.courses?.title || "Course"}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold text-green-500 text-xs">{p.amount_inr === 0 ? "Free" : `₹${p.amount_inr}`}</p>
-                  <p className="text-xs text-muted-foreground">{new Date(p.paid_at).toLocaleDateString()}</p>
+                  <p className="font-bold text-sm text-green-500">{p.amount_inr === 0 ? "Free" : `₹${p.amount_inr.toLocaleString()}`}</p>
+                  <p className="text-xs text-muted-foreground">{new Date(p.paid_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</p>
                 </div>
               </div>
             ))}

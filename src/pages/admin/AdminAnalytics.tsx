@@ -87,6 +87,32 @@ const AdminAnalytics = () => {
     fontSize: "12px",
   };
 
+  const pieTooltipStyle = {
+    background: "hsl(var(--popover))",
+    border: "2px solid hsl(var(--border))",
+    borderRadius: "8px",
+    padding: "12px",
+    fontSize: "14px",
+    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+    zIndex: 1000,
+  };
+
+  const CustomPieTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div style={pieTooltipStyle}>
+          <div className="font-semibold text-foreground mb-1">
+            {payload[0].name}
+          </div>
+          <div className="text-sm text-muted-foreground">
+            <span className="font-bold text-primary">{payload[0].value}</span> enrollment{payload[0].value !== 1 ? 's' : ''}
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -154,8 +180,8 @@ const AdminAnalytics = () => {
                       ))}
                     </Pie>
                     <Tooltip
-                      contentStyle={tooltipStyle}
-                      formatter={(v: any, name: any) => [v, name]}
+                      content={<CustomPieTooltip />}
+                      wrapperStyle={{ zIndex: 1000 }}
                     />
                   </PieChart>
                 </ResponsiveContainer>
