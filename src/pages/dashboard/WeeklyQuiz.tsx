@@ -6,7 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
-import { generateWeeklyQuiz, type WeeklyQuizQuestion } from "@/lib/gemini";
+import { generateWeeklyQuiz, type WeeklyQuizQuestion } from "@/lib/groq";
 import { awardBadge, addPoints } from "@/lib/achievements";
 
 const awardAchievement = async (userId: string, criteria: string, toast: any) => {
